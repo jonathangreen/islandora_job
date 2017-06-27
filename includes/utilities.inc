@@ -32,11 +32,19 @@ function islandora_job_get_client() {
  *   A JSON encoded payload for Gearman.
  */
 function islandora_job_format_payload($job_name, $args) {
+  global $user;
+  global $base_url;
   array_shift($args);
+  // Chop the 'sites/' part of the path off. This gives you the name of the
+  // site dir for the multisite, for example sites/example would be example
+  // we use this to create the queue for this multisite.
+  $site = substr(conf_path(),6);
   return json_encode(
     array(
-      "func" => $job_name,
+      "func" => $site == 'default' ? $job_name : "{$site}_{$job_name}",
       "args" => $args,
+      "site" => $base_url,
+      "uid" => $user->uid,
     )
   );
 }
